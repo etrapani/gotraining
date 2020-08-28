@@ -1,0 +1,52 @@
+**/tools/
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# logs
+*.log*
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# gitbash error
+vim.exe.stackdump
+
+#standar folder for docker volumes
+docker-data
+
+# eclipse project
+.classpath
+.project
+.settings
+.factorypath
+bin
+
+# Archivos que representen bases de datos en memoria
+*.db
+*.orig
+
+# IntelliJ IDEA
+*.iml
+*/.idea/
+*.idea/
+
+# VS Code
+
+.vscode
+
+# Os X Files
+.DS_Store
+
+#Vim
+*.swp
+*.swo
+logs
+
+# Carpetas creadas automaticamente por el IDE
+ddd-api/back-end/.metadata/
+ddd-api/back-end/.recommenders/
+.metadata/
+build/
+/.sonarlint
+sonarlint.json
