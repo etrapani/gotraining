@@ -1,0 +1,7 @@
+goos: linux
+goarch: amd64
+pkg: example.com/codelytv/cobra-03/infraestructure/repository/pokeapi
+cpu: Intel(R) Core(TM) i7-6500U CPU @ 2.50GHz
+BenchmarkExecute/Benchmarking-4         	       1	56301743496 ns/op
+PASS
+ok  	example.com/codelytv/cobra-03/infraestructure/repository/pokeapi	57.001s
