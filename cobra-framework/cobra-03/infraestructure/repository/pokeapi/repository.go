@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	jsoniter "github.com/json-iterator/go"
+	"sync"
 )
 
 const (
@@ -46,24 +47,34 @@ func (p *pokeApiRepo) Execute(limit int, offset int) (pokemons []ports.Pokemon, 
 }
 
 func (p *pokeApiRepo) getPokemonsInfo(pagePokemonResults []pagePokemonResultJson) (pokemons []ports.Pokemon, err error) {
-	for _, pokemon := range pagePokemonResults {
-		response, err := http.Get(pokemon.Url)
-		if err != nil {
-			return nil, err
-		}
-
-		contents, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			return nil, err
-		}
-		var pokemonInfo pokemonInfoJson
-		err = p.betterUnmarshal(contents, &pokemonInfo)
-		if err != nil {
-			return nil, err
-		}
-		pokemons = append(pokemons, toPokemon(pokemonInfo))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(pagePokemonResults))
+	pokemons = make([]ports.Pokemon, len(pagePokemonResults))
+	for i, pokemon := range pagePokemonResults {
+		go p.fetchPokemonInfo(pokemon.Url, wg, pokemons, i)
 	}
-	return
+	wg.Wait()
+	return pokemons, nil
+}
+
+func (p *pokeApiRepo) fetchPokemonInfo(url string, wg *sync.WaitGroup, pokemons []ports.Pokemon, index int) {
+	response, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return
+	}
+	var pokemonInfo pokemonInfoJson
+	err = p.betterUnmarshal(contents, &pokemonInfo)
+	if err != nil {
+		return
+	}
+
+	pokemons[index] = toPokemon(pokemonInfo)
+
+	wg.Done()
 }
 
 func toPokemon(source pokemonInfoJson) (pokemon ports.Pokemon) {
@@ -111,3 +122,4 @@ func (p *pokeApiRepo) betterUnmarshal(data []byte, v interface{}) error {
 
 	return nil
 }
+

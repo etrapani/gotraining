@@ -21,15 +21,13 @@ import (
 	"example.com/codelytv/cobra-03/infraestructure/repository/csv"
 	"example.com/codelytv/cobra-03/infraestructure/repository/pokeapi"
 	"github.com/spf13/cobra"
-	"os"
-	"runtime/pprof"
 )
 
 func main() {
-	f, _ := os.Create("pokeapi.cpu.prof")
-	defer f.Close()
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	//f, _ := os.Create("pokeapi.cpu.prof")
+	//defer f.Close()
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
 
 	var getPokemonsRepo ports.GetPokemonsRepo
 	getPokemonsRepo = pokeapi.NewPokeApiRepository()
