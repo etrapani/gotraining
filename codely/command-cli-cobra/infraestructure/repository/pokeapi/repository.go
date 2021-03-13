@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"example.com/codelytv/cobra-03/cmd/ports"
 	"fmt"
+	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
 	"net/http"
-	jsoniter "github.com/json-iterator/go"
-	"sync"
 )
 
 const (
@@ -16,6 +15,11 @@ const (
 
 type pokeApiRepo struct {
 	url string
+}
+
+type pokePos struct {
+	pokemon ports.Pokemon
+	pos int
 }
 
 // NewPokeApiRepository fetch pokemons from https://pokeapi.co/api/v2
@@ -47,17 +51,24 @@ func (p *pokeApiRepo) Execute(limit int, offset int) (pokemons []ports.Pokemon, 
 }
 
 func (p *pokeApiRepo) getPokemonsInfo(pagePokemonResults []pagePokemonResultJson) (pokemons []ports.Pokemon, err error) {
-	wg := &sync.WaitGroup{}
-	wg.Add(len(pagePokemonResults))
-	pokemons = make([]ports.Pokemon, len(pagePokemonResults))
+	totalPokemons := len(pagePokemonResults)
+	pokemons = make([]ports.Pokemon, totalPokemons)
+	queue := make(chan pokePos)
 	for i, pokemon := range pagePokemonResults {
-		go p.fetchPokemonInfo(pokemon.Url, wg, pokemons, i)
+		go p.fetchPokemonInfo(pokemon.Url, queue, i)
 	}
-	wg.Wait()
+	i:=0
+	for i < totalPokemons {
+		select {
+			case pk := <- queue:
+				pokemons[pk.pos] = pk.pokemon
+				i++
+		}
+	}
 	return pokemons, nil
 }
 
-func (p *pokeApiRepo) fetchPokemonInfo(url string, wg *sync.WaitGroup, pokemons []ports.Pokemon, index int) {
+func (p *pokeApiRepo) fetchPokemonInfo(url string, queue chan pokePos, index int) {
 	response, err := http.Get(url)
 	if err != nil {
 		return
@@ -72,9 +83,7 @@ func (p *pokeApiRepo) fetchPokemonInfo(url string, wg *sync.WaitGroup, pokemons 
 		return
 	}
 
-	pokemons[index] = toPokemon(pokemonInfo)
-
-	wg.Done()
+	queue <- pokePos{toPokemon(pokemonInfo), index}
 }
 
 func toPokemon(source pokemonInfoJson) (pokemon ports.Pokemon) {
