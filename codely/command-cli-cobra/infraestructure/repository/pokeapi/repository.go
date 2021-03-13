@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"example.com/codelytv/cobra-03/cmd/ports"
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
 	"net/http"
+	jsoniter "github.com/json-iterator/go"
+	"sync"
 )
 
 const (
@@ -15,11 +16,6 @@ const (
 
 type pokeApiRepo struct {
 	url string
-}
-
-type pokePos struct {
-	pokemon ports.Pokemon
-	pos int
 }
 
 // NewPokeApiRepository fetch pokemons from https://pokeapi.co/api/v2
@@ -51,9 +47,14 @@ func (p *pokeApiRepo) Execute(limit int, offset int) (pokemons []ports.Pokemon, 
 }
 
 func (p *pokeApiRepo) getPokemonsInfo(pagePokemonResults []pagePokemonResultJson) (pokemons []ports.Pokemon, err error) {
+	mu := &sync.Mutex{}
 	totalPokemons := len(pagePokemonResults)
-	pokemons = make([]ports.Pokemon, totalPokemons)
-	queue := make(chan pokePos)
+	type pokePos struct {
+		pokemon ports.Pokemon
+		pos int
+	}
+
+	queue := make(chan ports.Pokemon)
 	for i, pokemon := range pagePokemonResults {
 		go p.fetchPokemonInfo(pokemon.Url, queue, i)
 	}
@@ -61,14 +62,16 @@ func (p *pokeApiRepo) getPokemonsInfo(pagePokemonResults []pagePokemonResultJson
 	for i < totalPokemons {
 		select {
 			case pk := <- queue:
-				pokemons[pk.pos] = pk.pokemon
+				mu.Lock()
+				pokemons = append(pokemons, pk)
+				mu.Unlock()
 				i++
 		}
 	}
 	return pokemons, nil
 }
 
-func (p *pokeApiRepo) fetchPokemonInfo(url string, queue chan pokePos, index int) {
+func (p *pokeApiRepo) fetchPokemonInfo(url string, queue chan ports.Pokemon, index int) {
 	response, err := http.Get(url)
 	if err != nil {
 		return
@@ -83,7 +86,7 @@ func (p *pokeApiRepo) fetchPokemonInfo(url string, queue chan pokePos, index int
 		return
 	}
 
-	queue <- pokePos{toPokemon(pokemonInfo), index}
+	queue <- toPokemon(pokemonInfo)
 }
 
 func toPokemon(source pokemonInfoJson) (pokemon ports.Pokemon) {
