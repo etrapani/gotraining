@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -33,7 +34,7 @@ func (p *pokeApiRepo) Execute(limit int, offset int) (pokemons []ports.Pokemon, 
 	}
 
 	var pokemonPage pagePokemonJson
-	err = json.Unmarshal(contents, &pokemonPage)
+	err = p.betterUnmarshal(contents, &pokemonPage)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (p *pokeApiRepo) getPokemonsInfo(pagePokemonResults []pagePokemonResultJson
 			return nil, err
 		}
 		var pokemonInfo pokemonInfoJson
-		err = json.Unmarshal(contents, &pokemonInfo)
+		err = p.betterUnmarshal(contents, &pokemonInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -90,4 +91,23 @@ type pokemonInfoJson struct {
 	Name   string `json:"name"`
 	Height int    `json:"height"`
 	Weight int    `json:"weight"`
+}
+
+func (p *pokeApiRepo) standardUnmarshal(data []byte, v interface{}) error {
+	err := json.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *pokeApiRepo) betterUnmarshal(data []byte, v interface{}) error {
+	var js = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	err := js.Unmarshal(data, &v)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

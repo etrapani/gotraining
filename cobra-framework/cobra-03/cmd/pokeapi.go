@@ -59,4 +59,5 @@ func processCmd(cmd *cobra.Command, getPokemonsRepo ports.GetPokemonsRepo, saveP
 		return
 	}
 	savePokemons.Execute(pokemons, pathFile, fileName)
+
 }
