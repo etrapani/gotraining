@@ -3,9 +3,8 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
 	"fmt"
-	mooc "example.com/gotraining/go-hexagonal_http_api-course/internal"
-
 	"github.com/huandu/go-sqlbuilder"
 )
 
@@ -22,7 +21,7 @@ func NewCourseRepository(db *sql.DB) *CourseRepository {
 }
 
 // Save implements the mooc.CourseRepository interface.
-func (r *CourseRepository) Save(ctx context.Context, course mooc.Course) error {
+func (r *CourseRepository) Save(ctx context.Context, course courses.Course) error {
 	courseSQLStruct := sqlbuilder.NewStruct(new(sqlCourse))
 	query, args := courseSQLStruct.InsertInto(sqlCourseTable, sqlCourse{
 		ID:       course.ID().String(),
@@ -40,7 +39,7 @@ func (r *CourseRepository) Save(ctx context.Context, course mooc.Course) error {
 
 
 // GetAll implements the mooc.CourseRepository interface.
-func (r *CourseRepository) GetAll(ctx context.Context) (courses []mooc.Course, err error) {
+func (r *CourseRepository) GetAll(ctx context.Context) (response []courses.Course, err error) {
 	courseSQLStruct := sqlbuilder.NewSelectBuilder()
 	courseSQLStruct.Select("id", "name", "duration")
 	courseSQLStruct.From(sqlCourseTable)
@@ -53,18 +52,18 @@ func (r *CourseRepository) GetAll(ctx context.Context) (courses []mooc.Course, e
 		return nil, fmt.Errorf("error trying to get course on database: %v", err)
 	}
 	defer rows.Close()
-	courses = []mooc.Course{}
+	response = []courses.Course{}
 	for rows.Next() {
 		var sqlCourse sqlCourse
 		err := rows.Scan(sqlCourse.ID, sqlCourse.Name, sqlCourse.Duration)
 		if err != nil {
 			return nil, err
 		}
-		course, err := mooc.NewCourse(sqlCourse.ID, sqlCourse.Name, sqlCourse.Duration)
+		course, err := courses.NewCourse(sqlCourse.ID, sqlCourse.Name, sqlCourse.Duration)
 		if err != nil {
 			return nil, err
 		}
-		courses = append(courses, course)
+		response = append(response, course)
 	}
-	return courses, nil
+	return response, nil
 }

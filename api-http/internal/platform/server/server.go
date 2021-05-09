@@ -4,6 +4,8 @@ import (
 	"context"
 	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/server/handler/courses"
 	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/server/handler/health"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/server/handler/metrics"
+	middlewaremetrics "example.com/gotraining/go-hexagonal_http_api-course/internal/platform/server/middleware/metrics"
 	"example.com/gotraining/go-hexagonal_http_api-course/kit/bus"
 	"fmt"
 	"log"
@@ -26,12 +28,14 @@ type Server struct {
 
 func New(ctx context.Context, host string, port uint, shutdownTimeout time.Duration, bus bus.Bus) (context.Context, Server) {
 	srv := Server{
-		engine:   gin.New(),
+		engine:   gin.Default(),
 		httpAddr: fmt.Sprintf("%s:%d", host, port),
 
 		shutdownTimeout: shutdownTimeout,
 		bus: bus,
 	}
+
+	srv.engine.Use(middlewaremetrics.Middleware(srv.bus))
 
 	srv.registerRoutes()
 	return serverContext(ctx), srv
@@ -62,6 +66,7 @@ func (s *Server) registerRoutes() {
 	s.engine.GET("/health", health.CheckHandler())
 	s.engine.POST("/courses", courses.CreateHandler(s.bus))
 	s.engine.GET("/courses", courses.GetHandler(s.bus))
+	s.engine.GET("/metrics", metrics.GetHandler(s.bus))
 }
 
 func serverContext(ctx context.Context) context.Context {

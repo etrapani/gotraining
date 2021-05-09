@@ -1,4 +1,4 @@
-package fetching
+package fetchingcourse
 
 import (
 	"context"
@@ -24,11 +24,11 @@ func (c CourseQuery) Type() bus.Type {
 // CourseQueryHandler is the bus handler
 // responsible for fetching courses.
 type CourseQueryHandler struct {
-	service FetchingCourseService
+	service FetchingService
 }
 
 // NewCourseQueryHandler initializes a new NewCourseQueryHandler.
-func NewCourseQueryHandler(service FetchingCourseService) CourseQueryHandler {
+func NewCourseQueryHandler(service FetchingService) CourseQueryHandler {
 	return CourseQueryHandler{
 		service: service,
 	}

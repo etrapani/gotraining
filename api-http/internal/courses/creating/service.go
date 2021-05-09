@@ -1,18 +1,18 @@
-package creating
+package creatingcourse
 
 import (
 	"context"
-	mooc "example.com/gotraining/go-hexagonal_http_api-course/internal"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
 )
 
 // CourseService is the default CourseService interface
 // implementation returned by creating.NewCourseService.
 type CourseService struct {
-	courseRepository mooc.CourseRepository
+	courseRepository courses.CourseRepository
 }
 
 // NewCourseService returns the default Service interface implementation.
-func NewCourseService(courseRepository mooc.CourseRepository) CourseService {
+func NewCourseService(courseRepository courses.CourseRepository) CourseService {
 	return CourseService{
 		courseRepository: courseRepository,
 	}
@@ -20,10 +20,9 @@ func NewCourseService(courseRepository mooc.CourseRepository) CourseService {
 
 // CreateCourse implements the creating.CourseService interface.
 func (s CourseService) CreateCourse(ctx context.Context, id, name, duration string) error {
-	course, err := mooc.NewCourse(id, name, duration)
+	course, err := courses.NewCourse(id, name, duration)
 	if err != nil {
 		return err
 	}
 	return s.courseRepository.Save(ctx, course)
 }
-

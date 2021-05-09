@@ -3,11 +3,13 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/creating"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/fetching"
+	creatingcourse "example.com/gotraining/go-hexagonal_http_api-course/internal/courses/creating"
+	fetchingcourse "example.com/gotraining/go-hexagonal_http_api-course/internal/courses/fetching"
+	creatingmetric "example.com/gotraining/go-hexagonal_http_api-course/internal/metrics/creating"
 	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/bus/inmemory"
 	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/server"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/storage/mysql"
+	coursemysql "example.com/gotraining/go-hexagonal_http_api-course/internal/platform/storage/courses/mysql"
+	metricmysql "example.com/gotraining/go-hexagonal_http_api-course/internal/platform/storage/metrics/mysql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"time"
@@ -18,11 +20,11 @@ const (
 	port = 8080
 	shutdownTimeout = 10 * time.Second
 
-	dbUser = "codely"
-	dbPass = "codely"
+	dbUser = "root"
+	dbPass = "password"
 	dbHost = "localhost"
 	dbPort = "3306"
-	dbName = "codely"
+	dbName = "codelytv"
 )
 
 func Run() error {
@@ -36,16 +38,21 @@ func Run() error {
 		bus = inmemory.NewCommandBus()
 	)
 
-	courseRepository := mysql.NewCourseRepository(db)
+	courseRepository := coursemysql.NewCourseRepository(db)
+	metricRepository := metricmysql.NewMetricRepository(db)
 
-	creatingCourseService := creating.NewCourseService(courseRepository)
-	fetchingCourseService := fetching.NewCourseFetchingService(courseRepository)
+	creatingCourseService := creatingcourse.NewCourseService(courseRepository)
+	fetchingCourseService := fetchingcourse.NewCourseFetchingService(courseRepository)
+	creatingMetricService := creatingmetric.NewCreateMetricService(metricRepository)
 
-	createCourseCommandHandler := creating.NewCourseCommandHandler(creatingCourseService)
-	fetchingCourseQueryHandler := fetching.NewCourseQueryHandler(fetchingCourseService)
+	createCourseCommandHandler := creatingcourse.NewCourseCommandHandler(creatingCourseService)
+	fetchingCourseQueryHandler := fetchingcourse.NewCourseQueryHandler(fetchingCourseService)
+	creatingMetricQueryHandler := creatingmetric.NewMetricCommandHandler(creatingMetricService)
 
-	bus.RegisterCommandHandler(creating.CourseCommandType, createCourseCommandHandler)
-	bus.RegisterQueryHandler(fetching.CourseQueryType, fetchingCourseQueryHandler)
+	bus.RegisterCommandHandler(creatingcourse.CourseCommandType, createCourseCommandHandler)
+	bus.RegisterQueryHandler(fetchingcourse.CourseQueryType, fetchingCourseQueryHandler)
+	bus.RegisterCommandHandler(creatingmetric.MetricCommandType, creatingMetricQueryHandler)
+
 
 	ctx, srv := server.New(context.Background(), host, port, shutdownTimeout, bus)
 	return srv.Run(ctx)

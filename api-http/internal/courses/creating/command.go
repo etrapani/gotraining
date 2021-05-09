@@ -1,4 +1,4 @@
-package creating
+package creatingcourse
 
 import (
 	"context"
