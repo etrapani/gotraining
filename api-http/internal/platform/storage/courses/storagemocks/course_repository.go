@@ -5,7 +5,7 @@ package storagemocks
 import (
 	context "context"
 
-	mooc "example.com/gotraining/go-hexagonal_http_api-course/internal"
+	courses "example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,15 +15,15 @@ type CourseRepository struct {
 }
 
 // GetAll provides a mock function with given fields: ctx
-func (_m *CourseRepository) GetAll(ctx context.Context) ([]mooc.Course, error) {
+func (_m *CourseRepository) GetAll(ctx context.Context) ([]courses.Course, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []mooc.Course
-	if rf, ok := ret.Get(0).(func(context.Context) []mooc.Course); ok {
+	var r0 []courses.Course
+	if rf, ok := ret.Get(0).(func(context.Context) []courses.Course); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]mooc.Course)
+			r0 = ret.Get(0).([]courses.Course)
 		}
 	}
 
@@ -38,11 +38,11 @@ func (_m *CourseRepository) GetAll(ctx context.Context) ([]mooc.Course, error) {
 }
 
 // Save provides a mock function with given fields: ctx, course
-func (_m *CourseRepository) Save(ctx context.Context, course mooc.Course) error {
+func (_m *CourseRepository) Save(ctx context.Context, course courses.Course) error {
 	ret := _m.Called(ctx, course)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, mooc.Course) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, courses.Course) error); ok {
 		r0 = rf(ctx, course)
 	} else {
 		r0 = ret.Error(0)

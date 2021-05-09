@@ -7,7 +7,7 @@ import (
 
 )
 
-// Bus is an in-memory implementation of the bus.Bus.
+// Bus is an in-mysql implementation of the bus.Bus.
 type Bus struct {
 	commandsHandlers map[bus.Type]bus.CommandHandler
 	queryHandlers map[bus.Type]bus.QueryHandler

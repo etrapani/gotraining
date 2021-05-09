@@ -2,8 +2,8 @@ package courses
 
 import (
 	"errors"
-	mooc "example.com/gotraining/go-hexagonal_http_api-course/internal"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/creating"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
+	creatingcourse "example.com/gotraining/go-hexagonal_http_api-course/internal/courses/creating"
 	"example.com/gotraining/go-hexagonal_http_api-course/kit/bus"
 	"net/http"
 
@@ -25,7 +25,7 @@ func CreateHandler(bus bus.Bus) gin.HandlerFunc {
 			return
 		}
 
-		err := bus.DispatchCommand(ctx, creating.NewCourseCommand(
+		err := bus.DispatchCommand(ctx, creatingcourse.NewCourseCommand(
 			req.ID,
 			req.Name,
 			req.Duration,
@@ -33,8 +33,8 @@ func CreateHandler(bus bus.Bus) gin.HandlerFunc {
 
 		if err != nil {
 			switch {
-			case errors.Is(err, mooc.ErrInvalidCourseID),
-				errors.Is(err, mooc.ErrEmptyCourseName), errors.Is(err, mooc.ErrInvalidCourseID):
+			case errors.Is(err, courses.ErrInvalidCourseID),
+				errors.Is(err, courses.ErrEmptyCourseName), errors.Is(err, courses.ErrInvalidCourseID):
 				ctx.JSON(http.StatusBadRequest, err.Error())
 				return
 			default:

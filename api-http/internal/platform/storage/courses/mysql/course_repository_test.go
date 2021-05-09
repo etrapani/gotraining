@@ -3,7 +3,7 @@ package mysql
 import (
 	"context"
 	"errors"
-	mooc "example.com/gotraining/go-hexagonal_http_api-course/internal"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -13,7 +13,7 @@ import (
 
 func Test_CourseRepository_Save_RepositoryError(t *testing.T) {
 	courseID, courseName, courseDuration := "37a0f027-15e6-47cc-a5d2-64183281087e", "Test Course", "10 months"
-	course, err := mooc.NewCourse(courseID, courseName, courseDuration)
+	course, err := courses.NewCourse(courseID, courseName, courseDuration)
 	require.NoError(t, err)
 
 	db, sqlMock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
@@ -34,7 +34,7 @@ func Test_CourseRepository_Save_RepositoryError(t *testing.T) {
 
 func Test_CourseRepository_Save_Succeed(t *testing.T) {
 	courseID, courseName, courseDuration := "37a0f027-15e6-47cc-a5d2-64183281087e", "Test Course", "10 months"
-	course, err := mooc.NewCourse(courseID, courseName, courseDuration)
+	course, err := courses.NewCourse(courseID, courseName, courseDuration)
 	require.NoError(t, err)
 
 	db, sqlMock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))

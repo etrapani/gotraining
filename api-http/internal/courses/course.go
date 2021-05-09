@@ -1,4 +1,4 @@
-package mooc
+package courses
 
 import (
 	"context"
@@ -90,7 +90,7 @@ type CourseRepository interface {
 	GetAll(ctx context.Context) ([]Course, error)
 }
 
-//go:generate mockery --case=snake --outpkg=storagemocks --output=platform/storage/storagemocks --name=CourseRepository
+//go:generate mockery --case=snake --outpkg=storagemocks --output=../platform/storage/courses/storagemocks --name=CourseRepository
 
 // NewCourse creates a new course.
 func NewCourse(id, name, duration string) (Course, error) {

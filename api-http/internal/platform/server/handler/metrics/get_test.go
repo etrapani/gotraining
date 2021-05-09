@@ -1,12 +1,12 @@
-package courses
+package metrics
 
 import (
 	"encoding/json"
 	"errors"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/courses"
-	fetchingcourse "example.com/gotraining/go-hexagonal_http_api-course/internal/courses/fetching"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/metrics"
+	fetchingmetric "example.com/gotraining/go-hexagonal_http_api-course/internal/metrics/fetching"
 	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/bus/inmemory"
-	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/storage/courses/storagemocks"
+	"example.com/gotraining/go-hexagonal_http_api-course/internal/platform/storage/metrics/storagemocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -19,44 +19,44 @@ import (
 
 func TestGetHandler(t *testing.T) {
 	tests := map[string]struct {
-		mockData []courses.Course
+		mockData []metrics.Metric
 		mockError error
 		expectedResponse []getResponse
 		expectedStatus int
 	}{
 		"Empty repo return 200 with empty list": {
-			mockData: []courses.Course{},
+			mockData: []metrics.Metric{},
 			mockError: nil,
 			expectedStatus:http.StatusOK,
 			expectedResponse: []getResponse{}},
 		"Repo error return 500": {
-			mockData: []courses.Course{},
+			mockData: []metrics.Metric{},
 			mockError: errors.New("the field Duration can not be empty"),
 			expectedStatus:http.StatusInternalServerError,
 			expectedResponse: []getResponse{}},
 		"Fully repo return 200 with list of courses":{
-			mockData: []courses.Course{mockCourse("8a1c5cdc-ba57-445a-994d-aa412d23723f", "Courses Complete", "123")},
+			mockData: []metrics.Metric{mockMetric("8a1c5cdc-ba57-445a-994d-aa412d23723f", "/prueba/test", 500, 50,75, 100)},
 			mockError: nil,
 			expectedStatus:http.StatusOK,
-			expectedResponse: []getResponse{{Id: "8a1c5cdc-ba57-445a-994d-aa412d23723f", Name: "Courses Complete", Duration: "123"}}},
+			expectedResponse: []getResponse{{Id: "8a1c5cdc-ba57-445a-994d-aa412d23723f", Url: "/prueba/test", ResponseStatus: "500", RequestSize: 50, ResponseSize: 75, ResponseTime: 100}}},
 	}
 	for key, value := range tests {
 		t.Run(key, func(t *testing.T) {
-			courseRepository := storagemocks.CourseRepository{}
+			metricRepository := storagemocks.MetricRepository{}
 			bus := inmemory.NewCommandBus()
-			fetchingCourseService := fetchingcourse.NewCourseFetchingService(&courseRepository)
-			fetchingCourseQueryHandler := fetchingcourse.NewCourseQueryHandler(fetchingCourseService)
-			bus.RegisterQueryHandler(fetchingcourse.CourseQueryType, fetchingCourseQueryHandler)
+			fetchingMetricService := fetchingmetric.NewCourseFetchingService(&metricRepository)
+			fetchingMetricQueryHandler := fetchingmetric.NewMetricQueryHandler(fetchingMetricService)
+			bus.RegisterQueryHandler(fetchingmetric.MetricQueryType, fetchingMetricQueryHandler)
 
-			courseRepository.On(
+			metricRepository.On(
 				"GetAll",
 				mock.Anything,
 			).Return(value.mockData, value.mockError)
 			gin.SetMode(gin.TestMode)
 			r := gin.New()
-			r.GET("/courses", GetHandler(bus))
+			r.GET("/metrics", GetHandler(bus))
 
-			req, err := http.NewRequest(http.MethodGet, "/courses", nil)
+			req, err := http.NewRequest(http.MethodGet, "/metrics", nil)
 			require.NoError(t, err)
 
 			rec := httptest.NewRecorder()
@@ -76,10 +76,10 @@ func TestGetHandler(t *testing.T) {
 	}
 }
 
-func mockCourse(id string, name string, duration string) courses.Course {
-	course, err := courses.NewCourse(id, name, duration)
+func mockMetric(id, url string, responseStatus, requestSize, responseSize int, responseTime int64) metrics.Metric {
+	metric, err := metrics.NewMetric(id, url, responseStatus, requestSize, responseSize, responseTime)
 	if err != nil{
 		log.Fatalln(err)
 	}
-	return course
+	return metric
 }
